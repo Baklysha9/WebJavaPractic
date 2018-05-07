@@ -10,8 +10,10 @@ public class DataBase {
         Sql2o sql2o = new Sql2o("jdbc:postgresql://192.168.99.100:5432/vote", "admin", "admin");
         String sql = "CREATE TABLE IF NOT EXISTS task (id int, title varchar(255), content varchar(255), status boolean)";
 
-        try (Connection con = sql2o.beginTransaction()) {
-            con.createQuery(sql).executeUpdate();;
+        try (Connection con = sql2o.open()) {
+            con.createQuery(sql).executeUpdate();
+
+
         }
     }
     public List<Task> getAllTasks() {
@@ -19,16 +21,16 @@ public class DataBase {
         String sql =
                 "SELECT * FROM task";
 
-        try (Connection con = sql2o.open()) {
+        try (Connection con = sql2o.beginTransaction()) {
             return con.createQuery(sql).executeAndFetch(Task.class);
         }
     }
 
     public List<Task> fetchCustomers(int id) {
         Sql2o sql2o = new Sql2o("jdbc:postgresql://192.168.99.100:5432/vote", "admin", "admin");
-        try (Connection con = sql2o.open()) {
+        try (Connection con = sql2o.beginTransaction()) {
             final String query =
-                    "SELECT id, title, content, status FROM test WHERE id = :id";
+                    "SELECT id, title, content, status FROM task WHERE id = :id";
 
             return con.createQuery(query)
                     .addParameter("id",id)
@@ -42,7 +44,7 @@ public class DataBase {
                 "INSERT INTO task (id, title, content, status) " +
                         "VALUES (:id, :title, :content, :status)";
 
-        try (Connection con = sql2o.beginTransaction()) {
+        try (Connection con = sql2o.open()) {
             con.createQuery(insertQuery)
                     .addParameter("id", task.getId())
                     .addParameter("title", task.getTitle())
@@ -51,7 +53,7 @@ public class DataBase {
                     .executeUpdate();
             // Remember to call commit() when a transaction is opened,
             // default is to roll back.
-            con.commit();
+
         }
     }
 
@@ -70,25 +72,17 @@ public class DataBase {
                      .executeUpdate();
              // Remember to call commit() when a transaction is opened,
              // default is to roll back.
-             con.commit();
+
          }
      }
 
-    public void deleteTask(Task task) {
+    public void delete(int id) {
         Sql2o sql2o = new Sql2o("jdbc:postgresql://192.168.99.100:5432/vote", "admin", "admin");
-        final String insertQuery =
-                "DELETE FROM task WHERE id = :id";
-
-        try (Connection con = sql2o.beginTransaction()) {
-            con.createQuery(insertQuery)
-                    .addParameter("id", task.getId())
-                    .addParameter("title", task.getTitle())
-                    .addParameter("content", task.getContent())
-                    .addParameter("status", task.isStatus())
+        try(Connection con = sql2o.open()) {
+            String sql = "DELETE FROM task WHERE id = :id;";
+            con.createQuery(sql)
+                    .addParameter("id", id)
                     .executeUpdate();
-            // Remember to call commit() when a transaction is opened,
-            // default is to roll back.
-            con.commit();
         }
     }
 
