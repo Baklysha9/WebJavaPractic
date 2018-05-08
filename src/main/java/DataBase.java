@@ -70,6 +70,7 @@ public class DataBase {
                      .addParameter("content", task.getContent())
                      .addParameter("status", task.isStatus())
                      .executeUpdate();
+             con.commit();
              // Remember to call commit() when a transaction is opened,
              // default is to roll back.
 
